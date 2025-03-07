@@ -12,6 +12,7 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -90,30 +91,27 @@ public class YankiServiceImpl implements YankiService {
     @Override
     public Single<BaseResponse<YankiWallet>> registerWallet(YankiWalletRequest request) {
         return Single.zip(
-            repository.findByPhoneNumber(request.getPhoneNumber()).isEmpty(),
-            repository.findByDocumentNumber(request.getDocumentNumber()).isEmpty(),
-            repository.findByImei(request.getImei()).isEmpty(),
-            (isPhoneUnique, isDocumentUnique, isImeiUnique) -> {
-                ValidationUtil.validatePhoneNumber(request.getPhoneNumber());
-                ValidationUtil.validateDocumentNumber(request.getDocumentNumber());
-                ValidationUtil.validateImei(request.getImei());
-                ValidationUtil.validateEmail(request.getEmail());
-
-                if (!isPhoneUnique) {
-                    return Single.error(new IllegalArgumentException("Phone" +
-                        " number is already registered"));
-                }
-                if (!isDocumentUnique) {
-                    return Single.error(new IllegalArgumentException("Document" +
-                        " number is already registered"));
-                }
-                if (!isImeiUnique) {
-                    return Single.error(new IllegalArgumentException("IMEI" +
-                        " is already registered"));
-                }
-                return Single.just(true);
+                repository.findByPhoneNumber(request.getPhoneNumber()).count().map(count -> count == 0),
+                repository.findByDocumentNumber(request.getDocumentNumber()).count().map(count -> count == 0),
+                repository.findByImei(request.getImei()).count().map(count -> count == 0),
+                Triple::of
+        ).flatMap(result -> {
+            boolean isPhoneUnique = result.getLeft();
+            boolean isDocumentUnique = result.getMiddle();
+            boolean isImeiUnique = result.getRight();
+            ValidationUtil.validatePhoneNumber(request.getPhoneNumber());
+            ValidationUtil.validateDocumentNumber(request.getDocumentNumber());
+            ValidationUtil.validateImei(request.getImei());
+            ValidationUtil.validateEmail(request.getEmail());
+            if (!isPhoneUnique) {
+                return Single.error(new IllegalArgumentException("Phone number is already registered"));
             }
-        ).flatMap(valid -> {
+            if (!isDocumentUnique) {
+                return Single.error(new IllegalArgumentException("Document number is already registered"));
+            }
+            if (!isImeiUnique) {
+                return Single.error(new IllegalArgumentException("IMEI is already registered"));
+            }
             YankiWallet wallet = YankiWallet.builder()
                     .phoneNumber(request.getPhoneNumber())
                     .documentNumber(request.getDocumentNumber())
@@ -125,13 +123,15 @@ public class YankiServiceImpl implements YankiService {
                     .build();
             return repository.save(wallet)
                     .map(savedWallet -> new BaseResponse<>(
-                        HttpStatus.CREATED.value(),
-                        "Wallet created successfully",
-                        savedWallet));
-        }).onErrorReturn(throwable -> new BaseResponse<>(
-            HttpStatus.BAD_REQUEST.value(),
-            throwable.getMessage(),
-            null));
+                            HttpStatus.CREATED.value(),
+                            "Wallet created successfully",
+                            savedWallet
+                    ));
+        }).onErrorResumeNext(throwable -> Single.just(new BaseResponse<>(
+                HttpStatus.BAD_REQUEST.value(),
+                throwable.getMessage(),
+                null
+        )));
     }
     @Override
     public Maybe<YankiWallet> getWalletById(String id) {

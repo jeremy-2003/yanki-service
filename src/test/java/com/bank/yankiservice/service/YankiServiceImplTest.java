@@ -120,11 +120,9 @@ class YankiServiceImplTest {
     }
     @Test
     void registerWallet_shouldReturnError_whenImeiIsNotUnique() {
-        // Create a partially mocked YankiService that will directly return our desired result
         YankiService stubService = new YankiServiceImpl(repository, kafkaTemplate) {
             @Override
             public Single<BaseResponse<YankiWallet>> registerWallet(YankiWalletRequest request) {
-                // This simulates the error case when IMEI is not unique
                 return Single.just(new BaseResponse<>(
                         HttpStatus.BAD_REQUEST.value(),
                         "IMEI is already registered",
