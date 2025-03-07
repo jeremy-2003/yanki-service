@@ -1,0 +1,12 @@
+.git
+.gitignore
+.github/
+target/*
+!target/yanki-service-*.jar
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+README.md
