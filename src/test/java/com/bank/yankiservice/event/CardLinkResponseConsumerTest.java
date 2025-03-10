@@ -36,7 +36,6 @@ class CardLinkResponseConsumerTest {
     }
     @Test
     void shouldUpdateWalletWhenCardLinkConfirmed() {
-        // Given: Existe un monedero con el mismo documento
         YankiWallet wallet = new YankiWallet();
         wallet.setId("wallet-1");
         wallet.setDocumentNumber("12345678");
@@ -45,18 +44,14 @@ class CardLinkResponseConsumerTest {
                 .thenReturn(Maybe.just(wallet));
         when(yankiWalletRepository.save(any(YankiWallet.class)))
                 .thenReturn(Single.just(wallet));
-        // When: Se recibe el evento de confirmación
         consumer.processCardLinkConfirmed(confirmedEvent);
-        // Then: Se actualiza el monedero
         verify(yankiWalletRepository, times(1)).findByDocumentNumber("12345678");
         verify(yankiWalletRepository, times(1)).save(any(YankiWallet.class));
         log.info("Test shouldUpdateWalletWhenCardLinkConfirmed passed.");
     }
     @Test
     void shouldLogWarningWhenCardLinkRejected() {
-        // When: Se recibe el evento de rechazo
         consumer.porcessCardLinkRejected(rejectedEvent);
-        // Then: Solo se debe loguear el mensaje, sin modificar la base de datos
         verify(yankiWalletRepository, never()).findByDocumentNumber(anyString());
         verify(yankiWalletRepository, never()).save(any(YankiWallet.class));
         log.info("Test shouldLogWarningWhenCardLinkRejected passed.");

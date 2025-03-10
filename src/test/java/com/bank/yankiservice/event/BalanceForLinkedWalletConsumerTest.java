@@ -27,7 +27,6 @@ class BalanceForLinkedWalletConsumerTest {
     }
     @Test
     void shouldUpdateWalletBalanceSuccessfully() {
-        // Given: Existe un monedero vinculado a la tarjeta
         YankiWallet wallet = new YankiWallet();
         wallet.setId("wallet-1");
         wallet.setPhoneNumber("999999999");
@@ -38,26 +37,20 @@ class BalanceForLinkedWalletConsumerTest {
                 .thenReturn(Maybe.just(wallet));
         when(yankiWalletRepository.update(any(YankiWallet.class)))
                 .thenReturn(Completable.complete());
-        // When: Se recibe un evento de actualización de balance
         consumer.handleBalanceUpdatedEvent(balanceUpdatedEvent);
-        // Then: Se verifica que se actualizó el balance
         verify(yankiWalletRepository, times(1)).findByLinkedCard("card-9876");
         verify(yankiWalletRepository, times(1)).update(any(YankiWallet.class));
     }
     @Test
     void shouldNotUpdateWhenWalletNotFound() {
-        // Given: No hay un monedero vinculado a la tarjeta
         when(yankiWalletRepository.findByLinkedCard("card-9876"))
                 .thenReturn(Maybe.empty());
-        // When: Se recibe un evento de actualización de balance
         consumer.handleBalanceUpdatedEvent(balanceUpdatedEvent);
-        // Then: No se debe intentar actualizar ningún monedero
         verify(yankiWalletRepository, times(1)).findByLinkedCard("card-9876");
         verify(yankiWalletRepository, never()).update(any(YankiWallet.class));
     }
     @Test
     void shouldHandleErrorWhenUpdatingBalanceFails() {
-        // Given: Existe un monedero, pero falla la actualización
         YankiWallet wallet = new YankiWallet();
         wallet.setId("wallet-1");
         wallet.setPhoneNumber("999999999");
@@ -68,9 +61,7 @@ class BalanceForLinkedWalletConsumerTest {
                 .thenReturn(Maybe.just(wallet));
         when(yankiWalletRepository.update(any(YankiWallet.class)))
                 .thenReturn(Completable.error(new RuntimeException("Database error")));
-        // When: Se recibe un evento de actualización de balance
         consumer.handleBalanceUpdatedEvent(balanceUpdatedEvent);
-        // Then: Se debe manejar el error
         verify(yankiWalletRepository, times(1)).findByLinkedCard("card-9876");
         verify(yankiWalletRepository, times(1)).update(any(YankiWallet.class));
     }

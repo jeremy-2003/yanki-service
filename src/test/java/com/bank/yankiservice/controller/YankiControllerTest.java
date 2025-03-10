@@ -447,7 +447,7 @@ class YankiControllerTest {
     }
     @Test
     void testDeleteWallet_MissingBearerPrefix() {
-        String token = "mocked-token"; // Missing "Bearer " prefix
+        String token = "mocked-token";
         String id = "wallet-123";
         Single<BaseResponse<Object>> response = yankiController.deleteWallet(token, id);
         response.test()
@@ -469,7 +469,7 @@ class YankiControllerTest {
             LocalDateTime.now(),
             LocalDateTime.now());
         when(jwtProvider.getUsernameFromToken("mocked-token"))
-            .thenReturn("987654321"); // Different from the wallet's phone number
+            .thenReturn("987654321");
         when(yankiService.getWalletById(id)).thenReturn(Maybe.just(wallet));
         Single<BaseResponse<Object>> response = yankiController.deleteWallet(token, id);
         response.test()

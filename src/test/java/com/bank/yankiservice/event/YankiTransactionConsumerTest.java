@@ -34,7 +34,6 @@ class YankiTransactionConsumerTest {
     }
     @Test
     void shouldProcessTransactionAndUpdateBalances() {
-        // Given: Ambos monederos existen y no tienen tarjeta vinculada
         YankiWallet senderWallet = new YankiWallet();
         senderWallet.setPhoneNumber("999999999");
         senderWallet.setBalance(new BigDecimal("100.00"));
@@ -49,16 +48,13 @@ class YankiTransactionConsumerTest {
                 .thenReturn(Completable.complete());
         when(yankiTransactionRepository.save(any(YankiTransaction.class)))
                 .thenReturn(Single.just(new YankiTransaction()));
-        // When: Se procesa la transacción
         consumer.processYankiTransactionProcessed(transactionEvent);
-        // Then: Se actualizan los saldos y se almacena la transacción
         verify(walletRepository, times(1)).update(senderWallet);
         verify(walletRepository, times(1)).update(receiverWallet);
         verify(yankiTransactionRepository, times(1)).save(any(YankiTransaction.class));
     }
     @Test
     void shouldProcessTransactionWithDebitCardSender() {
-        // Given: El remitente tiene una tarjeta vinculada, el receptor no
         YankiWallet senderWallet = new YankiWallet();
         senderWallet.setPhoneNumber("999999999");
         senderWallet.setBalance(new BigDecimal("100.00"));
@@ -74,9 +70,7 @@ class YankiTransactionConsumerTest {
                 .thenReturn(Completable.complete());
         when(yankiTransactionRepository.save(any(YankiTransaction.class)))
                 .thenReturn(Single.just(new YankiTransaction()));
-        // When: Se procesa la transacción
         consumer.processYankiTransactionProcessed(transactionEvent);
-        // Then: Solo se actualiza el saldo del receptor
         verify(walletRepository, times(1)).update(receiverWallet);
         verify(walletRepository, never()).update(senderWallet);
         verify(yankiTransactionRepository, times(1)).save(any(YankiTransaction.class));

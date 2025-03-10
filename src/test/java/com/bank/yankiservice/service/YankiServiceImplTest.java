@@ -130,7 +130,6 @@ class YankiServiceImplTest {
                 ));
             }
         };
-        // Create a test request
         YankiWalletRequest request = new YankiWalletRequest();
         request.setPhoneNumber("123456789");
         request.setDocumentNumber("12345678");
@@ -143,7 +142,6 @@ class YankiServiceImplTest {
         assertEquals("IMEI is already registered", response.getMessage());
         assertNull(response.getData());
     }
-    // Tests for getWalletByPhoneNumber method
     @Test
     void getWalletByPhoneNumber_shouldReturnWallet_whenWalletExists() {
         // Arrange
@@ -169,7 +167,6 @@ class YankiServiceImplTest {
         testObserver.assertNoValues();
         testObserver.assertComplete();
     }
-    // Tests for getWalletByDocument method
     @Test
     void getWalletByDocument_shouldReturnWallet_whenWalletExists() {
         // Arrange
@@ -195,7 +192,6 @@ class YankiServiceImplTest {
         testObserver.assertNoValues();
         testObserver.assertComplete();
     }
-    // Tests for updateWallet method
     @Test
     void updateWallet_shouldUpdateWallet_whenWalletExists() {
         // Arrange
